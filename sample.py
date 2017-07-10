@@ -22,26 +22,26 @@ def main():
                         help='path to the model file like output/best_model/model-40.')
 
     # Parameters for sampling.
-    parser.add_argument('--temperature', type=float,
+    parser.add_argument('--temperature', '-t', type=float,
                         default=1.0,
                         help=('Temperature for sampling from softmax: '
                               'higher temperature, more random; '
                               'lower temperature, more greedy.'))
 
-    parser.add_argument('--max_prob', dest='max_prob', action='store_true',
+    parser.add_argument('--max_prob', '-m', dest='max_prob', action='store_true',
                         help='always pick the most probable next character in sampling')
 
     parser.set_defaults(max_prob=False)
 
-    parser.add_argument('--start_text', type=str,
+    parser.add_argument('--start_text', '-s', type=str,
                         default='The meaning of life is ',
                         help='the text to start with')
 
-    parser.add_argument('--length', type=int,
+    parser.add_argument('--length', '-l', type=int,
                         default=100,
                         help='length of sampled sequence')
 
-    parser.add_argument('--seed', type=int,
+    parser.add_argument('--seed', '-S', type=int,
                         default=-1,
                         help=('seed for sampling to replicate results, '
                               'an integer between 0 and 4294967295.'))
