@@ -112,6 +112,9 @@ def main():
                         help=('use the first 1000 character to as data'
                               ' to test the implementation'))
     parser.set_defaults(test=False)
+
+    parser.add_argument('--word-based', dest='word_based', action='store_true',
+                        help='use word-based RNN instead of char-based')
     
     args = parser.parse_args()
 
@@ -188,6 +191,8 @@ def main():
     logging.info('Reading data from: %s', args.data_file)
     with codecs.open(args.data_file, 'r', encoding=args.encoding) as f:
         text = f.read()
+    if args.word_based:
+        text = tokenize_words(text)
 
     if args.test:
         text = text[:1000]
@@ -252,7 +257,7 @@ def main():
         with tf.name_scope('evaluation'):
             test_model = CharRNN(is_training=False, use_batch=False, **params)
             saver = tf.train.Saver(name='checkpoint_saver', max_to_keep=args.max_to_keep)
-            best_model_saver = tf.train.Saver(name='best_model_saver')
+            best_model_saver = tf.train.Saver(name='best_model_saver', max_to_keep=0)
 
     logging.info('Model size (number of parameters): %s\n', train_model.model_size)
     logging.info('Start training\n')
@@ -261,6 +266,7 @@ def main():
     result['params'] = params
     result['vocab_file'] = args.vocab_file
     result['encoding'] = args.encoding
+    result['word_based'] = args.word_based
 
     try:
         # Use try and finally to make sure that intermediate
@@ -373,6 +379,6 @@ def load_vocab(vocab_file, encoding):
 def save_vocab(vocab_index_dict, vocab_file, encoding):
     with codecs.open(vocab_file, 'w', encoding=encoding) as f:
         json.dump(vocab_index_dict, f, indent=2, sort_keys=True)
-        
+
 if __name__ == '__main__':
     main()

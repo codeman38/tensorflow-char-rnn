@@ -65,6 +65,7 @@ def main():
     with open(os.path.join(args.init_dir, 'result.json'), 'r') as f:
         result = json.load(f)
     params = result['params']
+    word_based = result.get('word_based', False)
 
     if args.model_path:    
         best_model = args.model_path
@@ -88,7 +89,10 @@ def main():
             saver = tf.train.Saver(name='checkpoint_saver')
 
     if args.evaluate:
-        example_batches = BatchGenerator(args.example_text, 1, 1, vocab_size,
+        example_text = args.example_text
+        if word_based:
+            example_text = tokenize_words(example_text)
+        example_batches = BatchGenerator(example_text, 1, 1, vocab_size,
                                          vocab_index_dict, index_vocab_dict)
         with tf.Session(graph=graph) as session:
             saver.restore(session, best_model)
@@ -100,15 +104,19 @@ def main():
     else:
         if args.seed >= 0:
             np.random.seed(args.seed)
+        start_text = args.start_text
+        if word_based:
+            start_text = tokenize_words(start_text)
         # Sampling a sequence 
         with tf.Session(graph=graph) as session:
             saver.restore(session, best_model)
-            sample = test_model.sample_seq(session, args.length, args.start_text,
+            sample = test_model.sample_seq(session, args.length, start_text,
                                             vocab_index_dict, index_vocab_dict,
                                             temperature=args.temperature,
                                             max_prob=args.max_prob)
             print('Sampled text is:\n%s' % sample)
         return sample
+
 
 if __name__ == '__main__':
     main()

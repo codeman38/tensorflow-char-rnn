@@ -5,6 +5,7 @@ import logging
 import time
 import numpy as np
 import tensorflow as tf
+import re
 
 # Disable Tensorflow logging messages.
 logging.getLogger('tensorflow').setLevel(logging.WARNING)
@@ -383,3 +384,7 @@ def create_tuple_placeholders(dtype, extra_dims, shape):
       result = t(*subplaceholders)
   return result
   
+
+def tokenize_words(text):
+    token_re = re.compile("\w+|\s+|[^\w\s]+")
+    return token_re.findall(text)
