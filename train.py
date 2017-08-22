@@ -115,6 +115,8 @@ def main():
 
     parser.add_argument('--word-based', dest='word_based', action='store_true',
                         help='use word-based RNN instead of char-based')
+    parser.add_argument('--vocab-file', dest='vocab_file',
+                        help='predefined vocabulary of tokens')
     
     args = parser.parse_args()
 
@@ -122,7 +124,7 @@ def main():
     args.save_model = os.path.join(args.output_dir, 'save_model/model')
     args.save_best_model = os.path.join(args.output_dir, 'best_model/model')
     args.tb_log_dir = os.path.join(args.output_dir, 'tensorboard_log/')
-    args.vocab_file = ''
+    vocab_file = None
 
     # Create necessary directories.
     if args.init_dir:
@@ -172,7 +174,7 @@ def main():
             args.encoding = result['encoding']
         else:
             args.encoding = 'utf-8'
-        args.vocab_file = os.path.join(args.init_dir, 'vocab.json')
+        vocab_file = os.path.join(args.init_dir, 'vocab.json')
     else:
         params = {'batch_size': args.batch_size,
                   'num_unrollings': args.num_unrollings,
@@ -210,12 +212,16 @@ def main():
     valid_text = text[train_size:train_size + valid_size]
     test_text = text[train_size + valid_size:]
 
-    if args.vocab_file:
+    if vocab_file:
         vocab_index_dict, index_vocab_dict, vocab_size = load_vocab(
-          args.vocab_file, args.encoding)
+          vocab_file, args.encoding)
     else:
         logging.info('Creating vocabulary')
-        vocab_index_dict, index_vocab_dict, vocab_size = create_vocab(text)
+        if args.vocab_file:
+            vocab_index_dict, index_vocab_dict, vocab_size = load_vocab(
+                args.vocab_file, args.encoding)
+        else:
+            vocab_index_dict, index_vocab_dict, vocab_size = create_vocab(text)
         vocab_file = os.path.join(args.output_dir, 'vocab.json')
         save_vocab(vocab_index_dict, vocab_file, args.encoding)
         logging.info('Vocabulary is saved in %s', vocab_file)
