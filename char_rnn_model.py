@@ -246,7 +246,8 @@ class CharRNN(object):
     return ppl, summary_str, global_step
 
   def sample_seq(self, session, length, start_text, vocab_index_dict,
-                 index_vocab_dict, temperature=1.0, max_prob=True):
+                 index_vocab_dict, temperature=1.0, max_prob=True,
+                 add_spaces=False):
 
     state = session.run(self.zero_state)
 
@@ -279,7 +280,7 @@ class CharRNN(object):
 
       seq.append(id2char(sample, index_vocab_dict))
       x = np.array([[sample]])
-    return ''.join(seq)
+    return ' '.join(seq) if add_spaces else ''.join(seq)
       
         
 class BatchGenerator(object):

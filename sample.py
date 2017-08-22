@@ -113,7 +113,8 @@ def main():
             sample = test_model.sample_seq(session, args.length, start_text,
                                             vocab_index_dict, index_vocab_dict,
                                             temperature=args.temperature,
-                                            max_prob=args.max_prob)
+                                            max_prob=args.max_prob,
+                                            add_spaces=word_based)
             print('Sampled text is:\n%s' % sample)
         return sample
 
