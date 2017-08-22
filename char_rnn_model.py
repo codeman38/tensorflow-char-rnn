@@ -386,5 +386,4 @@ def create_tuple_placeholders(dtype, extra_dims, shape):
   
 
 def tokenize_words(text):
-    token_re = re.compile("\w+|\s+|[^\w\s]+")
-    return token_re.findall(text)
+    return re.compile("\s+").split(text.strip())
