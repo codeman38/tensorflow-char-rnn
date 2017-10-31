@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL']='2'
 
@@ -110,13 +112,16 @@ def main():
         # Sampling a sequence 
         with tf.Session(graph=graph) as session:
             saver.restore(session, best_model)
-            sample = test_model.sample_seq(session, args.length, start_text,
+            sample = test_model.sample_seq_stream(session,
+                                            args.length, start_text,
                                             vocab_index_dict, index_vocab_dict,
                                             temperature=args.temperature,
-                                            max_prob=args.max_prob,
-                                            add_spaces=word_based)
-            print('Sampled text is:\n%s' % sample)
-        return sample
+                                            max_prob=args.max_prob)
+            delim = ' ' if word_based else ''
+            print('Sampled text is:')
+            for ch in sample:
+                print(ch, end=delim)
+            print()
 
 
 if __name__ == '__main__':
