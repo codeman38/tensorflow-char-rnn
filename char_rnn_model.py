@@ -248,22 +248,29 @@ class CharRNN(object):
   def sample_seq(self, session, length, start_text, vocab_index_dict,
                  index_vocab_dict, temperature=1.0, max_prob=True,
                  add_spaces=False):
+    seq = self.sample_seq_stream(session, length, start_text,
+                                 vocab_index_dict, index_vocab_dict,
+                                 temperature, max_prob)
+    return ' '.join(seq) if add_spaces else ''.join(seq)
+
+  def sample_seq_stream(self, session, length, start_text, vocab_index_dict,
+                        index_vocab_dict, temperature=1.0, max_prob=True):
 
     state = session.run(self.zero_state)
 
     # use start_text to warm up the RNN.
     if start_text is not None and len(start_text) > 0:
-      seq = list(start_text)
       for char in start_text[:-1]:
+        yield char
         x = np.array([[char2id(char, vocab_index_dict)]])
         state = session.run(self.final_state,
                             {self.input_data: x,
                              self.initial_state: state})
+      yield start_text[-1]
       x = np.array([[char2id(start_text[-1], vocab_index_dict)]])
     else:
       vocab_size = len(vocab_index_dict.keys())
       x = np.array([[np.random.randint(0, vocab_size)]])
-      seq = []
 
     for i in range(length):
       state, logits = session.run([self.final_state,
@@ -278,9 +285,8 @@ class CharRNN(object):
       else:
         sample = np.random.choice(self.vocab_size, 1, p=probs[0])[0]
 
-      seq.append(id2char(sample, index_vocab_dict))
+      yield id2char(sample, index_vocab_dict)
       x = np.array([[sample]])
-    return ' '.join(seq) if add_spaces else ''.join(seq)
       
         
 class BatchGenerator(object):
