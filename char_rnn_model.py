@@ -247,14 +247,15 @@ class CharRNN(object):
 
   def sample_seq(self, session, length, start_text, vocab_index_dict,
                  index_vocab_dict, temperature=1.0, max_prob=True,
-                 add_spaces=False):
+                 truncate_count=0, add_spaces=False):
     seq = self.sample_seq_stream(session, length, start_text,
                                  vocab_index_dict, index_vocab_dict,
-                                 temperature, max_prob)
+                                 temperature, max_prob, truncate_count)
     return ' '.join(seq) if add_spaces else ''.join(seq)
 
   def sample_seq_stream(self, session, length, start_text, vocab_index_dict,
-                        index_vocab_dict, temperature=1.0, max_prob=True):
+                        index_vocab_dict, temperature=1.0, max_prob=True,
+                        truncate_count=0):
 
     state = session.run(self.zero_state)
 
@@ -277,13 +278,14 @@ class CharRNN(object):
                                    self.logits],
                                   {self.input_data: x,
                                    self.initial_state: state})
-      unnormalized_probs = np.exp((logits - np.max(logits)) / temperature)
-      probs = unnormalized_probs / np.sum(unnormalized_probs)
+      unnormalized_probs = np.exp((logits - np.max(logits)) / temperature)[0]
+      truncated_probs = truncate_probs(unnormalized_probs, truncate_count)
+      probs = truncated_probs / np.sum(truncated_probs)
 
       if max_prob:
-        sample = np.argmax(probs[0])
+        sample = np.argmax(probs)
       else:
-        sample = np.random.choice(self.vocab_size, 1, p=probs[0])[0]
+        sample = np.random.choice(self.vocab_size, 1, p=probs)[0]
 
       yield id2char(sample, index_vocab_dict)
       x = np.array([[sample]])
@@ -391,6 +393,15 @@ def create_tuple_placeholders(dtype, extra_dims, shape):
       result = t(*subplaceholders)
   return result
   
+
+def truncate_probs(probs, count):
+  if count is None or count <= 0:
+    return probs
+  trunc = np.zeros_like(probs)
+  for idx in np.argsort(probs)[-count:]:
+    trunc[idx] = probs[idx]
+  return trunc
+
 
 def tokenize_words(text):
     return re.compile("\s+").split(text.strip())

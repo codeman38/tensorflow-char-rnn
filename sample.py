@@ -35,6 +35,11 @@ def main():
 
     parser.set_defaults(max_prob=False)
 
+    parser.add_argument('--truncate', type=int, default=0,
+                        metavar='NUM',
+                        help='truncate the probability distribution to the '
+                             'top NUM choices at each character')
+
     parser.add_argument('--start_text', '-s', type=str,
                         default='The meaning of life is ',
                         help='the text to start with')
@@ -116,7 +121,8 @@ def main():
                                             args.length, start_text,
                                             vocab_index_dict, index_vocab_dict,
                                             temperature=args.temperature,
-                                            max_prob=args.max_prob)
+                                            max_prob=args.max_prob,
+                                            truncate_count=args.truncate)
             delim = ' ' if word_based else ''
             print('Sampled text is:')
             for ch in sample:
